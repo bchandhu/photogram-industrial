@@ -2,7 +2,7 @@ desc "Fill the database tables with some sample data"
 task sample_data: :environment do
   starting = Time.now
 
-  # Clean up existing uploaded files
+  # Clean up existing uploaded files (no longer needed, but keeping it harmless)
   FileUtils.rm_rf(Rails.root.join("public", "uploads"))
 
   FollowRequest.destroy_all
@@ -44,7 +44,7 @@ task sample_data: :environment do
       ),
       website: Faker::Internet.url,
       private: secret,
-      avatar_image: File.open("#{Rails.root}/public/avatars/#{rand(1..10)}.jpeg")
+      avatar_image: "https://robohash.org/#{rand(10000)}?set=set4"
     )
   end
 
@@ -53,22 +53,16 @@ task sample_data: :environment do
   users.each do |first_user|
     users.each do |second_user|
       if rand < 0.75
-        status = "accepted"
-        if second_user.private?
-          status = "pending"
-        end
-        first_user_follow_request = first_user.sent_follow_requests.create(
+        status = second_user.private? ? "pending" : "accepted"
+        first_user.sent_follow_requests.create(
           recipient: second_user,
           status: status
         )
       end
 
       if rand < 0.75
-        status = "accepted"
-        if first_user.private?
-          status = "pending"
-        end
-        second_user_follow_request = second_user.sent_follow_requests.create(
+        status = first_user.private? ? "pending" : "accepted"
+        second_user.sent_follow_requests.create(
           recipient: first_user,
           status: status
         )
@@ -80,7 +74,7 @@ task sample_data: :environment do
     rand(15).times do
       photo = user.own_photos.create(
         caption: Faker::Quote.jack_handey,
-        image: File.open("#{Rails.root}/public/photos/#{rand(1..10)}.jpeg")
+        image: "https://robohash.org/#{rand(9999)}?set=set5"
       )
 
       user.followers.each do |follower|
