@@ -3,11 +3,12 @@
 # Table name: users
 #
 #  id                     :bigint           not null, primary key
-#  avatar_image           :string
+#  avatar_image           :string           default("avatar_placeholder.png")
 #  bio                    :string
 #  comments_count         :integer          default(0)
 #  email                  :citext           default(""), not null
 #  encrypted_password     :string           default(""), not null
+#  integer                :integer          default(0)
 #  likes_count            :integer          default(0)
 #  name                   :string
 #  photos_count           :integer          default(0)
@@ -15,7 +16,7 @@
 #  remember_created_at    :datetime
 #  reset_password_sent_at :datetime
 #  reset_password_token   :string
-#  username               :text
+#  username               :citext           not null
 #  website                :string
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
