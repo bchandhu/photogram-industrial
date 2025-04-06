@@ -11,7 +11,7 @@
 #  likes_count            :integer          default(0)
 #  name                   :string
 #  photos_count           :integer          default(0)
-#  private                :boolean
+#  private                :boolean          default(TRUE)
 #  remember_created_at    :datetime
 #  reset_password_sent_at :datetime
 #  reset_password_token   :string
@@ -33,7 +33,7 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable
 
   has_many :own_photos, class_name: "Photo", foreign_key: "owner_id"
-  
+
   has_many :comments, foreign_key: :author_id
 
   has_many :sent_follow_requests, foreign_key: :sender_id, class_name: "FollowRequest"
@@ -55,5 +55,7 @@ class User < ApplicationRecord
   has_many :feed, through: :leaders, source: :own_photos
 
   has_many :discover, -> { distinct }, through: :leaders, source: :liked_photos
+
+  validates :username, presence: true, uniqueness: true
   
 end

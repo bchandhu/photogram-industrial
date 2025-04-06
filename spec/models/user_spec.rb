@@ -11,7 +11,7 @@
 #  likes_count            :integer          default(0)
 #  name                   :string
 #  photos_count           :integer          default(0)
-#  private                :boolean
+#  private                :boolean          default(TRUE)
 #  remember_created_at    :datetime
 #  reset_password_sent_at :datetime
 #  reset_password_token   :string
