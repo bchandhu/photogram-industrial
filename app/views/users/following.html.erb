@@ -1,0 +1,7 @@
+<%= render "users/tabs", user: @user %>
+
+<%= render "users/connections", connections: @following %>
+
+<% @following.each do |leader| %>
+  <%= render "photos/photo", connection: leader %>
+<% end %>

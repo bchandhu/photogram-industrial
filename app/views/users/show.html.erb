@@ -1,7 +1,5 @@
-<%= render "users/tabs", user: @user  %>
-
 <h2>Own photos</h2>
 
-<% @user.own_photos.each do |photo| %>
+<% @own_photos.each do |photo| %>
   <%= render "photos/photo", photo: photo %>
 <% end %>
