@@ -1,50 +1,26 @@
 desc "Fill the database tables with some sample data"
-task sample_data: :environment do
-  starting = Time.now
+task({ sample_data: :environment }) do
+  puts "Creating sample data..."
 
-  # Clean up existing uploaded files (no longer needed, but keeping it harmless)
-  FileUtils.rm_rf(Rails.root.join("public", "uploads"))
-
-  FollowRequest.destroy_all
-  Comment.destroy_all
-  Like.destroy_all
-  Photo.destroy_all
-  User.destroy_all
-
-  people = Array.new(10) do
-    {
-      first_name: Faker::Name.first_name,
-      last_name: Faker::Name.last_name,
-    }
+  if Rails.env.development?
+    FollowRequest.destroy_all
+    Comment.destroy_all
+    Like.destroy_all
+    Photo.destroy_all
+    User.destroy_all
   end
 
-  people << { first_name: "Alice", last_name: "Smith" }
-  people << { first_name: "Bob", last_name: "Smith" }
-  people << { first_name: "Carol", last_name: "Smith" }
-  people << { first_name: "Dave", last_name: "Smith" }
-  people << { first_name: "Eve", last_name: "Smith" }
+  usernames = ["alice", "bob"]
 
-  people.each do |person|
-    username = person.fetch(:first_name).downcase
-    secret = false
+  10.times { usernames << Faker::Internet.unique.username(specifier: 5..8) }
 
-    if ["alice", "carol"].include?(username) || User.where(private: true).count <= 6
-      secret = true
-    end
-
-    user = User.create(
+  usernames.each do |username|
+    User.create!(
       email: "#{username}@example.com",
       password: "password",
-      username: username.downcase,
-      name: "#{person[:first_name]} #{person[:last_name]}",
-      bio: Faker::Lorem.paragraph(
-        sentence_count: 2,
-        supplemental: true,
-        random_sentences_to_add: 4
-      ),
-      website: Faker::Internet.url,
-      private: secret,
-      avatar_image: "https://robohash.org/#{rand(10000)}?set=set4"
+      username: username,
+      private: [true, false].sample,
+      remote_avatar_image_url: "https://robohash.org/#{rand(10000)}?set=set4"
     )
   end
 
@@ -52,39 +28,37 @@ task sample_data: :environment do
 
   users.each do |first_user|
     users.each do |second_user|
+      next if first_user == second_user
+
       if rand < 0.75
-        status = second_user.private? ? "pending" : "accepted"
-        first_user.sent_follow_requests.create(
+        first_user.sent_follow_requests.create!(
           recipient: second_user,
-          status: status
+          status: FollowRequest.statuses.keys.sample
         )
       end
 
       if rand < 0.75
-        status = first_user.private? ? "pending" : "accepted"
-        second_user.sent_follow_requests.create(
+        second_user.sent_follow_requests.create!(
           recipient: first_user,
-          status: status
+          status: FollowRequest.statuses.keys.sample
         )
       end
     end
   end
 
   users.each do |user|
-    rand(15).times do
-      photo = user.own_photos.create(
-        caption: Faker::Quote.jack_handey,
-        image: "https://robohash.org/#{rand(9999)}?set=set5"
+    rand(5..10).times do
+      photo = user.own_photos.create!(
+        caption: Faker::Quote.famous_last_words,
+        remote_image_url: "https://robohash.org/#{rand(9999)}?set=set5"
       )
 
       user.followers.each do |follower|
-        if rand < 0.5
-          photo.fans << follower
-        end
+        photo.fans << follower if rand < 0.5
 
         if rand < 0.25
-          comment = photo.comments.create(
-            body: Faker::Quote.jack_handey,
+          photo.comments.create!(
+            body: Faker::Quote.famous_last_words,
             author: follower
           )
         end
@@ -92,11 +66,10 @@ task sample_data: :environment do
     end
   end
 
-  ending = Time.now
-  p "It took #{(ending - starting).to_i} seconds to create sample data."
-  p "There are now #{User.count} users."
-  p "There are now #{FollowRequest.count} follow requests."
-  p "There are now #{Photo.count} photos."
-  p "There are now #{Like.count} likes."
-  p "There are now #{Comment.count} comments."
+  puts "Sample data created!"
+  puts "Users: #{User.count}"
+  puts "Follow Requests: #{FollowRequest.count}"
+  puts "Photos: #{Photo.count}"
+  puts "Likes: #{Like.count}"
+  puts "Comments: #{Comment.count}"
 end
